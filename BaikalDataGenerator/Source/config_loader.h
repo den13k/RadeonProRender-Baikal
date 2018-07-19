@@ -1,5 +1,5 @@
 /**********************************************************************
-Copyright (c) 2016 Advanced Micro Devices, Inc. All rights reserved.
+Copyright (c) 2018 Advanced Micro Devices, Inc. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,29 +19,40 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ********************************************************************/
-#include "Application/application.h"
 
-int main(int argc, char * argv[])
+#pragma once
+
+#include <vector>
+#include "utils.h"
+#include "input_info.h"
+
+using CameraIterator = std::vector<CameraInfo>::const_iterator;
+using LightsIterator = std::vector<LightInfo>::const_iterator;
+using SppIterator = std::vector<int>::const_iterator;
+
+class ConfigLoader
 {
-    try
-    {
-        Baikal::Application app(argc, argv);
-        app.Run();
+public:
+    explicit ConfigLoader(const DGenConfig& config);
 
-    }
-    catch (CLWException& ex)
-    {
-        std::cerr << ex.what() << " (OpenCL error code: "
-            << ex.errcode_ << ")" << std::endl;
-        return -1;
+    CameraIterator CamStatesBegin() const;
+    CameraIterator CamStatesEnd() const;
 
-    }
-    catch (std::exception& ex)
-    {
-        std::cerr << ex.what() << std::endl;
-        return -1;
+    LightsIterator LightsBegin() const;
+    LightsIterator LightsEnd() const;
 
-    }
+    SppIterator SppBegin() const;
+    SppIterator SppEnd() const;
 
-    return 0;
-}
+private:
+
+    void ValidateConfig(const DGenConfig& config) const;
+
+    void LoadCameraConfig(const std::filesystem::path& file_name);
+    void LoadLightConfig(const std::filesystem::path& file_name);
+    void LoadSppConfig(const std::filesystem::path& file_name);
+
+    std::vector<CameraInfo> m_camera_states;
+    std::vector<LightInfo> m_light_settings;
+    std::vector<int> m_spp;
+};

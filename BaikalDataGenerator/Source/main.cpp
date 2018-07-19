@@ -1,5 +1,5 @@
 /**********************************************************************
-Copyright (c) 2016 Advanced Micro Devices, Inc. All rights reserved.
+Copyright (c) 2018 Advanced Micro Devices, Inc. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,29 +19,43 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ********************************************************************/
-#include "Application/application.h"
 
-int main(int argc, char * argv[])
+#include "cmd_line_parser.h"
+#include "config_loader.h"
+#include "render.h"
+
+void Run(const DGenConfig& config)
+{
+    ConfigLoader config_loader(config);
+
+    Render render(config.scene_file, config.width, config.height);
+
+    render.GenerateDataset(config_loader.CamStatesBegin(), config_loader.CamStatesEnd(),
+                           config_loader.LightsBegin(), config_loader.LightsEnd(),
+                           config_loader.SppBegin(), config_loader.SppEnd(),
+                           config.output_dir,
+                           config.gamma_correction);
+}
+
+int main(int argc, char *argv[])
 {
     try
     {
-        Baikal::Application app(argc, argv);
-        app.Run();
+        CmdLineParser cmd_parser(argc, argv);
 
-    }
-    catch (CLWException& ex)
-    {
-        std::cerr << ex.what() << " (OpenCL error code: "
-            << ex.errcode_ << ")" << std::endl;
-        return -1;
+        if (cmd_parser.HasHelpOption())
+        {
+            cmd_parser.ShowHelp();
+            return 0;
+        }
 
+        auto config = cmd_parser.Parse();
+
+        Run(config);
     }
     catch (std::exception& ex)
     {
-        std::cerr << ex.what() << std::endl;
+        std::cout << ex.what();
         return -1;
-
     }
-
-    return 0;
 }

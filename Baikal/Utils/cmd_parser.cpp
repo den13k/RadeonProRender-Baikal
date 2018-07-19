@@ -1,5 +1,5 @@
 /**********************************************************************
-Copyright (c) 2016 Advanced Micro Devices, Inc. All rights reserved.
+Copyright (c) 2018 Advanced Micro Devices, Inc. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,29 +19,44 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ********************************************************************/
-#include "Application/application.h"
 
-int main(int argc, char * argv[])
+#include "Utils/cmd_parser.h"
+#include <algorithm>
+
+namespace Baikal
 {
-    try
-    {
-        Baikal::Application app(argc, argv);
-        app.Run();
 
-    }
-    catch (CLWException& ex)
+    CmdParser::CmdParser(int argc, char* argv[])
     {
-        std::cerr << ex.what() << " (OpenCL error code: "
-            << ex.errcode_ << ")" << std::endl;
-        return -1;
+        if (argc < 0)
+        {
+            throw std::logic_error(std::string(__func__) + ": 'argc' can't be negative");
+        }
+        if (!argv)
+        {
+            throw std::logic_error(std::string(__func__) + ": 'argv' is nulltpr");
+        }
 
-    }
-    catch (std::exception& ex)
-    {
-        std::cerr << ex.what() << std::endl;
-        return -1;
-
+        m_cmd_line = { argv, argv + argc };
     }
 
-    return 0;
+    bool CmdParser::OptionExists(const std::string& option) const
+    {
+        return (std::find(m_cmd_line.begin(), m_cmd_line.end(), option) != m_cmd_line.end());
+    }
+
+    const std::string* CmdParser::GetOptionValue(const std::string& option) const
+    {
+        auto it = std::find(m_cmd_line.begin(), m_cmd_line.end(), option);
+
+        if ((it == m_cmd_line.end()) || (++it == m_cmd_line.end()))
+        {
+            return nullptr;
+        }
+        else
+        {
+            return &(*it);
+        }
+    }
+
 }

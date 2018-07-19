@@ -1,5 +1,5 @@
 /**********************************************************************
-Copyright (c) 2016 Advanced Micro Devices, Inc. All rights reserved.
+Copyright (c) 2018 Advanced Micro Devices, Inc. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,29 +19,31 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ********************************************************************/
-#include "Application/application.h"
 
-int main(int argc, char * argv[])
+#pragma once
+
+#include <string>
+#include "utils.h"
+#include <Utils/cmd_parser.h>
+
+class CmdLineParser
 {
-    try
-    {
-        Baikal::Application app(argc, argv);
-        app.Run();
+public:
 
-    }
-    catch (CLWException& ex)
-    {
-        std::cerr << ex.what() << " (OpenCL error code: "
-            << ex.errcode_ << ")" << std::endl;
-        return -1;
+    // 'argc' - number of the command line arguments
+    // 'argv' - command line arguments string
+    CmdLineParser(int argc, char* argv[]);
 
-    }
-    catch (std::exception& ex)
-    {
-        std::cerr << ex.what() << std::endl;
-        return -1;
+    // Generate DGenConfig from internal string
+    DGenConfig Parse() const;
 
-    }
+    // check if there is '-help' option
+    // returns true if there's a help option, false otherwise
+    bool HasHelpOption() const;
 
-    return 0;
-}
+    // print help option
+    void ShowHelp() const;
+
+private:
+    Baikal::CmdParser m_cmd_parser;
+};
